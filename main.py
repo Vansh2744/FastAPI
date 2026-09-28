@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 
 app = FastAPI()
 
@@ -16,7 +16,18 @@ async def get_user(id:str):
     return {'message':f'Fetch User with id : {id}'}
 
 # Query Parameter
-
 @app.get('/user-by-name')
 def user_by_name(name):
     return {'name':name}
+
+@app.get('/user-info')
+def get_info(name:str = None, email:str = None):
+    return {'name':name, 'email':email}
+
+# @app.post('/create')
+# def create(name:str=Form(...), email:str=Form(...)):
+#     return {'name':name, 'email':email}
+
+@app.post('/create')
+def create(user:dict):
+    return user
