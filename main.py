@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Form
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -28,6 +29,15 @@ def get_info(name:str = None, email:str = None):
 # def create(name:str=Form(...), email:str=Form(...)):
 #     return {'name':name, 'email':email}
 
+# @app.post('/create')
+# def create(user:dict):
+#     return user
+
+class User(BaseModel):
+    name:str
+    email:str
+    age:int
+
 @app.post('/create')
-def create(user:dict):
+def create(user:User):
     return user
