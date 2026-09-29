@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
@@ -9,7 +9,18 @@ app = FastAPI()
 #         return {"name":"Vansh", "email":"vansh@gmail.com","age":23}
 #     raise HTTPException(status_code=404, detail="User not found")
 
-# Custom Error Handler(Global Error Handler)
+# Custom Error Handler--------------------
+# class UserExceptionHandler(Exception):
+#     def __init__(self, email:str):
+#         self.email = email
+
+# @app.get("/user/{email}")
+# def create(email:str):
+#     if email != "vansh@gmail.com":
+#         raise UserExceptionHandler(email)
+#     return {"email":email}
+
+# Global Error Handler----------------------
 class UserExceptionHandler(Exception):
     def __init__(self, email:str):
         self.email = email
@@ -24,3 +35,20 @@ def create(email:str):
     if email != "vansh@gmail.com":
         raise UserExceptionHandler(email)
     return {"email":email}
+
+# Dependency Injection
+def current_user():
+    return {
+        "name":"Vansh",
+        "email":"vansh@gmail.com"
+    }
+
+@app.get("/profile")
+def get_profile(curr_user=Depends(current_user)):
+    return curr_user
+
+@app.get("/check-valid/{email}")
+def is_valid(email:str, curr_user=Depends(current_user)):
+    if curr_user['email'] == email:
+        return {"message":"User is Valid"}
+    raise HTTPException(status_code=401, detail="User is Invalid")
