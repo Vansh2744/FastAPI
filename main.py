@@ -41,3 +41,8 @@ class User(BaseModel):
 @app.post('/create')
 def create(user:User):
     return user
+
+# Path + Query + Body
+@app.post('/combo/{id}')
+def get_combo(id:int, user:User, sex:str):
+    return {'id':id, 'sex':sex, 'data':user}
