@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from jose import jwt, JWTError
 from dotenv import load_dotenv
 import os
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
+from schemas import UserCreate
 
 load_dotenv()
 
@@ -44,14 +45,52 @@ def create_access_token(data:dict):
 
     return token
 
+
 @app.post('/login')
 def login(form_data:OAuth2PasswordRequestForm = Depends()):
-    if form_data.email not in ['vansh@gmail.com', 'aman@gmail.com']:
+    if form_data.username not in ['vansh@gmail.com', 'aman@gmail.com']:
         raise HTTPException(status_code=401, detail="Invalid Email")
 
     if not verify_password(form_data.password, "$2b$12$.a0o5hZqehVe0UwZVDlC3eCPkX4IsU2tuW4Y0L0voCZHt61PRdXNa"):
         raise HTTPException(status_code=401, detail="Invalid Password")
 
-    token = create_access_token({'email':form_data.email})
+    token = create_access_token({'email':form_data.username})
 
     return {'token':token}
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={
+            "WWW-Authenticate": "Bearer"
+        }
+    )
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        email = payload.get("email")
+
+        if email is None:
+            raise credentials_exception
+
+        return email
+
+    except JWTError:
+        raise credentials_exception
+
+@app.get("/profile")
+def profile(
+    current_user: str = Depends(get_current_user)
+):
+    return {
+        "message": "You can access this protected route",
+        "user": current_user
+    }
